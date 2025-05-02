@@ -75,7 +75,65 @@
              
   <section id="architecture-overview">
 <h1>Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permalink to this heading"></a></h1>
-<img alt="Data Flow Diagram" src="_images/architecture.png" />
+<figure class="align-center">
+<a class="reference internal image-reference" href="_images/architecture.png"><img alt="Data Flow Diagram" src="_images/architecture.png" style="width: 80%;" /></a>
+</figure>
+<p><strong>Figure 1.</strong> The Data Flow and Components</p>
+<blockquote>
+<div><p>Description of Components:</p>
+<p>Source Layer</p>
+<blockquote>
+<div><p>Input Data: Annual Corporate Social Responsibility (CSR) Reports in PDF format
+Storage Location: MinIO bucket named report1</p>
+</div></blockquote>
+<dl>
+<dt>Text Conversion Layer</dt><dd><p>Script: extract_text.py
+Function:</p>
+<blockquote>
+<div><p>Uses PyMuPDF (fitz) to convert PDF to plain text
+Outputs .txt files for each report</p>
+</div></blockquote>
+<p>Output Storage: MinIO bucket named report
+Features: Logging for success/failure, skip logic for already converted files</p>
+</dd>
+<dt>Indicator Extraction Layer</dt><dd><p>Script: content_extract.py
+Function:</p>
+<blockquote>
+<div><p>Splits text into sentences using NLTK
+Applies regular expressions to extract sustainability indicators
+Selects the maximum value for each indicator when multiple matches are found
+Extracts metadata (e.g., company ID, reporting year) and computes MD5 hash</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Output Format: Structured JSON with:</dt><dd><p>Environmental indicators (e.g., Scope 1/2/3 emissions, water withdrawal)
+Metadata (e.g., company_id, reporting_year)
+Validation support fields (__content_hash__, source path)</p>
+</dd>
+</dl>
+</dd>
+<dt>Storage Layer</dt><dd><p>Databases Used: PostgreSQL and MinIO
+PostgreSQL Tables:</p>
+<blockquote>
+<div><p>pdf_records: Stores metadata of reports (e.g., file name, company, year, hash)
+csr_indicators: Stores structured JSONB data for indicators</p>
+</div></blockquote>
+<dl class="simple">
+<dt>Storage Features:</dt><dd><p>Conflict resolution via ON CONFLICT UPSERT
+Traceability via content hash and MinIO path
+Schema-less flexibility with JSONB for evolving indicators</p>
+</dd>
+</dl>
+</dd>
+<dt>Visualization Layer</dt><dd><p>Frontend Framework: React + Tailwind CSS + Recharts
+Functionality:</p>
+<blockquote>
+<div><p>Searchable dashboard for company-level CSR metrics
+Dynamic charts and tables for 13 key indicators
+Responsive and interactive UI for multi-year comparisons</p>
+</div></blockquote>
+</dd>
+</dl>
+</div></blockquote>
 </section>
 
 
